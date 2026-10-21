@@ -19,7 +19,7 @@
 # configure desktop related files
 
 
-if (UNIX)
+if (UNIX AND NOT APPLE)
 
   add_custom_target(desktop)
 
@@ -132,4 +132,4 @@ if (UNIX)
 
   add_dependencies(xiphos desktop)
 
-endif (UNIX)
+endif (UNIX AND NOT APPLE)

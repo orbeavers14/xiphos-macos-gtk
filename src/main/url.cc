@@ -152,6 +152,9 @@ static gint show_studypad(const gchar *filename, gboolean clicked)
  */
 
 const char *display_progs[] = {
+#ifdef __APPLE__
+    "/usr/bin/open",
+#endif
     "/usr/bin/xdg-open",
     "/usr/bin/gnome-open",
     "/usr/bin/display",

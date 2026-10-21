@@ -71,6 +71,10 @@
 // gatewayed into src/main/sword.cc.
 #else
 // System TTS on Linux
+#ifdef __APPLE__
+#include "macos_tts.h"
+#endif
+
 #ifdef __linux__
 #include <speech-dispatcher/libspeechd.h>
 #endif
@@ -1606,6 +1610,9 @@ void InitSystemTTS(void)
     tts_handle = spd_open("xiphos", NULL, NULL, SPD_MODE_SINGLE);
     if (!tts_handle)
         g_warning("Speech Dispatcher not available.");
+#elif defined(__APPLE__)
+    if (!tts_handle)
+        tts_handle = macos_tts_create();
 #elif defined(_WIN32)
     WindowsInitSystemTTS();
 #endif
@@ -1618,6 +1625,9 @@ void StopSystemTTS(void)
         spd_close((SPDConnection*)tts_handle);
         tts_handle = NULL;
     }
+#elif defined(__APPLE__)
+    macos_tts_destroy(tts_handle);
+    tts_handle = NULL;
 #elif defined(_WIN32)
     WindowsStopSystemTTS();
 #endif
@@ -1631,6 +1641,11 @@ gboolean SystemSpeak(gchar *text, int length, int unused_param)
         initialized = TRUE;
     }
     
+#ifdef __APPLE__
+    if (!tts_handle)
+        InitSystemTTS();
+#endif
+
     if (!tts_handle) {
         return FALSE;
     }
@@ -1641,6 +1656,8 @@ gboolean SystemSpeak(gchar *text, int length, int unused_param)
     spd_say(conn, SPD_MESSAGE, null_terminated);
     g_free(null_terminated);
     return TRUE;
+#elif defined(__APPLE__)
+    return macos_tts_speak(tts_handle, text, length);
 #elif defined(_WIN32)
     return WindowsSystemSpeak(text, length);
 #endif
@@ -1680,6 +1697,8 @@ void StopReading(void)
     if (tts_handle) {
         spd_cancel((SPDConnection*)tts_handle);
     }
+#elif defined(__APPLE__)
+    macos_tts_cancel(tts_handle);
 #elif defined(_WIN32)
     WindowsStopReading();
 #endif

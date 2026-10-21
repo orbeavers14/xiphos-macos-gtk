@@ -429,3 +429,9 @@ A script named `xc-xiphos-win.sh` in the win32 directory will run automatically
 all the steps above.
 
 See intructions in the file `win32/WindowsBuildNotes.txt`
+
+
+Experimental Apple Silicon macOS build
+---------------------------------------
+See [the GTK macOS developer build instructions](doc/macos.md) for dependency
+requirements, local validation results and remaining blockers.

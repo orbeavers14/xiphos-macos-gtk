@@ -280,7 +280,7 @@ if (WIN32)
     PRIVATE
     -lsapi
   )
-else()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   # only Linux builds link against speech lib.
   target_link_libraries(xiphos
     PRIVATE
@@ -296,10 +296,19 @@ install (TARGETS ${PROJECT_NAME}
 
 # Find Speech Dispatcher for TTS
 # pkg_check_modules(SPEECHD libspeechd)  # Commenté car .pc manquant
-if(TRUE)  # Force l'activation
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_include_directories(xiphos PRIVATE /usr/include/libspeechd)
     add_definitions(-DHAVE_LIBSPEECHD)
     message(STATUS "Speech Dispatcher found (manual) - TTS support enabled")
-else()
+elseif(NOT APPLE AND NOT WIN32)
     message(WARNING "Speech Dispatcher not found - TTS support disabled")
+endif()
+
+if(APPLE)
+  enable_language(OBJC)
+  find_library(AVFOUNDATION_FRAMEWORK AVFoundation REQUIRED)
+  find_library(FOUNDATION_FRAMEWORK Foundation REQUIRED)
+  target_sources(xiphos PRIVATE macos_tts.m)
+  set_source_files_properties(macos_tts.m PROPERTIES COMPILE_OPTIONS "-fno-objc-arc")
+  target_link_libraries(xiphos PRIVATE ${AVFOUNDATION_FRAMEWORK} ${FOUNDATION_FRAMEWORK})
 endif()

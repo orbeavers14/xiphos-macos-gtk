@@ -86,6 +86,6 @@ endif()
 # warnings
 
 # Warn about unknown platform
-if( NOT WIN32 AND NOT (CMAKE_SYSTEM_NAME STREQUAL Linux))
+if(NOT WIN32 AND NOT APPLE AND NOT (CMAKE_SYSTEM_NAME STREQUAL Linux))
   message(AUTHOR_WARNING "Unknown plateform, assuming ${CMAKE_SYSTEM_NAME} is UNIX like platform")
 endif()

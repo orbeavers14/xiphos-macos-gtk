@@ -1,0 +1,20 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+# Build an unmodified BibleSync checkout with Darwin UUID/gettext linkage.
+cmake_minimum_required(VERSION 3.18)
+project(xiphos_macos_biblesync CXX)
+if(NOT APPLE)
+  message(FATAL_ERROR "This dependency wrapper is for macOS only")
+endif()
+set(BIBLESYNC_SOURCE_DIR "" CACHE PATH "Path to a BibleSync source checkout")
+if(NOT EXISTS "${BIBLESYNC_SOURCE_DIR}/include/biblesync.hh")
+  message(FATAL_ERROR "Set BIBLESYNC_SOURCE_DIR to a BibleSync source checkout")
+endif()
+find_package(Intl REQUIRED)
+# BibleSync's finder expects a separate libuuid; Darwin has it in libSystem.
+set(CMAKE_FIND_FRAMEWORK NEVER)
+find_path(UUID_INCLUDE_DIRS uuid/uuid.h REQUIRED)
+set(UUID_LIBRARIES System)
+set(BUILD_SHARED_LIBS ON CACHE BOOL "Build BibleSync shared library")
+add_subdirectory("${BIBLESYNC_SOURCE_DIR}" biblesync)
+target_include_directories(biblesync PRIVATE ${Intl_INCLUDE_DIRS})
+target_link_libraries(biblesync ${Intl_LIBRARIES})

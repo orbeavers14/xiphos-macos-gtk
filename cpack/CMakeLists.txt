@@ -197,18 +197,23 @@ if(UNIX)
 endif(UNIX)
 
 # call generators
-if (UNIX)
+if (UNIX AND NOT APPLE)
     # CPack RPM generator
     include(fedora/XiphosRPMPkg.cmake)
     # CPack Debian generator (Unix only)
     include(debian/XiphosDebianPkg.cmake)
-endif (UNIX)
+endif()
 
 if(WIN32)
   set(CPACK_GENERATOR "NSIS")
   # CPack NSIS generator on Windows using the Nullsoft Installation System
   include(windows/XiphosWindowsPkg.cmake)
 endif(WIN32)
+
+if(APPLE)
+  # Prefix archive for developer installs, not a standalone application bundle.
+  set(CPACK_GENERATOR "TGZ")
+endif()
 
 # run CPack
 include(CPack)

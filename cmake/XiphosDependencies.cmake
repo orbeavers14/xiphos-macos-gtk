@@ -51,9 +51,11 @@ else()
 endif()
 
 # Sword dependencies
-pkg_check_modules(Sword REQUIRED IMPORTED_TARGET
-  "sword>=1.8.1"
-  )
+if(APPLE)
+  find_package(Sword 1.8.1 REQUIRED)
+else()
+  pkg_check_modules(Sword REQUIRED IMPORTED_TARGET "sword>=1.8.1")
+endif()
 
 # Sqlite3 dependency (used to read AndBible bookmark backups for import)
 pkg_check_modules(Sqlite3 REQUIRED IMPORTED_TARGET
@@ -70,6 +72,12 @@ if(WIN32)
     "gmodule-2.0"
     "icu-i18n"
     "libssh2"
+    )
+elseif(APPLE)
+  pkg_check_modules(Core REQUIRED IMPORTED_TARGET
+    "glib-2.0"
+    "gmodule-2.0"
+    "icu-i18n"
     )
 else()
   pkg_check_modules(Core REQUIRED IMPORTED_TARGET
@@ -150,6 +158,15 @@ endif()
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
+
+# Darwin does not provide gettext in libc. Keep localization available.
+if(APPLE)
+  find_package(Intl REQUIRED)
+  include_directories(${Intl_INCLUDE_DIRS})
+  link_libraries(${Intl_LIBRARIES})
+  # WebKitGTK on Darwin must not select Cocoa availability annotations.
+  add_definitions(-DBUILDING_GTK__)
+endif()
 
 # find gettext
 find_package(Gettext 0.19.7)

@@ -62,12 +62,8 @@
 
 #include "gui/debug_glib_null.h"
 
-/* X keyboard #definitions, to handle shortcuts */
-/* we must define the categories of #definitions we need. */
-#define XK_MISCELLANY
-#define XK_LATIN1
-#define XK_XKB_KEYS
-#include <X11/keysymdef.h>
+/* GDK key values work with both Quartz and X11 GTK backends. */
+#include <gdk/gdkkeysyms.h>
 
 WIDGETS widgets;
 
@@ -589,13 +585,13 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 			    GDK_MOD1_MASK | GDK_MOD4_MASK);
 	
 	switch (event->keyval) {
-	case XK_Shift_L: /* shift keys - we need this for locking strongs (and */
-	case XK_Shift_R: /* other stuff) while moving mouse to previewer */
+	case GDK_KEY_Shift_L: /* shift keys - we need this for locking strongs (and */
+	case GDK_KEY_Shift_R: /* other stuff) while moving mouse to previewer */
 		shift_key_pressed = TRUE;
 	/* no break? hm... */
 
-	case XK_a:
-	case XK_A:
+	case GDK_KEY_a:
+	case GDK_KEY_A:
 		if (state == GDK_MOD1_MASK) { // Alt-A  annotation
 			gui_mark_verse_dialog(sM, sV);
 		} else if (state ==
@@ -604,8 +600,8 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 			on_biblesync_kbd(3); // BSP audience
 		break;
 
-	case XK_b:
-	case XK_B:
+	case GDK_KEY_b:
+	case GDK_KEY_B:
 		if (state == GDK_MOD1_MASK) { // Alt-B  bookmark
 			gchar *label = g_strdup_printf("%s, %s", sV, sM);
 			gui_bookmark_dialog(label, sM, sV);
@@ -613,8 +609,8 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_c:
-	case XK_C:
+	case GDK_KEY_c:
+	case GDK_KEY_C:
 		if (state == GDK_MOD1_MASK) { // Alt-C  commentary pane
 			gtk_widget_grab_focus(navbar_versekey.lookup_entry);
 			gtk_notebook_set_current_page(GTK_NOTEBOOK(widgets.notebook_comm_book),
@@ -650,14 +646,14 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 #endif /* biblesync >= 2.0.0 */
 		break;
 
-	case XK_d:
-	case XK_D:
+	case GDK_KEY_d:
+	case GDK_KEY_D:
 		if (state == GDK_MOD1_MASK) // Alt-D  dictionary entry
 			gtk_widget_grab_focus(widgets.entry_dict);
 		break;
 
-	case XK_f:
-	case XK_F:
+	case GDK_KEY_f:
+	case GDK_KEY_F:
 		if (state == GDK_CONTROL_MASK) { // Ctrl-F  find text
 			if (settings.showtexts) {
 				gui_find_dlg(widgets.html_text,
@@ -678,8 +674,8 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_g:
-	case XK_G:
+	case GDK_KEY_g:
+	case GDK_KEY_G:
 		if (state == GDK_MOD1_MASK) { // Alt-G  genbook entry
 			gtk_notebook_set_current_page(GTK_NOTEBOOK(widgets.notebook_comm_book),
 						      1);
@@ -687,18 +683,18 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_j:
+	case GDK_KEY_j:
 		if (state == 0) // J    "next verse"
 			access_on_down_eventbox_button_release_event(VERSE_BUTTON);
 		break;
 
-	case XK_k:
+	case GDK_KEY_k:
 		if (state == 0) // K    "previous verse"
 			access_on_up_eventbox_button_release_event(VERSE_BUTTON);
 		break;
 
-	case XK_l:
-	case XK_L:
+	case GDK_KEY_l:
+	case GDK_KEY_L:
 		if (state == GDK_CONTROL_MASK) // Ctrl-L  verse entry
 			gtk_widget_grab_focus(navbar_versekey.lookup_entry);
 		else if (state == GDK_MOD1_MASK) // Alt-L  lemma
@@ -707,8 +703,8 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 					  "Lemmas");
 		break;
 
-	case XK_m:
-	case XK_M:
+	case GDK_KEY_m:
+	case GDK_KEY_M:
 		if (state == GDK_MOD1_MASK) // Alt-M morph
 		{
 			kbd_toggle_option((main_check_for_global_option(sM, "GBFMorph") ||
@@ -718,8 +714,8 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_n:
-	case XK_N:
+	case GDK_KEY_n:
+	case GDK_KEY_N:
 		if (state == GDK_CONTROL_MASK) // Ctrl-N verse
 			access_on_down_eventbox_button_release_event(VERSE_BUTTON);
 		else if (state == 0) // n chapter
@@ -742,15 +738,15 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_o:
-	case XK_O:
+	case GDK_KEY_o:
+	case GDK_KEY_O:
 		if (state ==
 		    (GDK_CONTROL_MASK | GDK_MOD1_MASK | GDK_SHIFT_MASK))
 			on_biblesync_kbd(0); // BSP off
 		break;
 
-	case XK_p:
-	case XK_P:
+	case GDK_KEY_p:
+	case GDK_KEY_P:
 		if (state == GDK_CONTROL_MASK) // Ctrl-P verse
 			access_on_up_eventbox_button_release_event(VERSE_BUTTON);
 		else if (state == 0) // p chapter
@@ -765,14 +761,14 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 			on_biblesync_kbd(1); // BSP personal
 		break;
 
-	case XK_q:
-	case XK_Q:
+	case GDK_KEY_q:
+	case GDK_KEY_Q:
 		if (state == GDK_CONTROL_MASK) // Ctrl-Q quit
 			delete_event(NULL, NULL, NULL);
 		break;
 
-	case XK_r:
-	case XK_R:
+	case GDK_KEY_r:
+	case GDK_KEY_R:
 		if (state == GDK_MOD1_MASK) // Alt-R red words
 		{
 			kbd_toggle_option(((main_check_for_global_option(sM, "GBFRedLetterWords")) ||
@@ -788,8 +784,8 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 
 		break;
 
-	case XK_s:
-	case XK_S:
+	case GDK_KEY_s:
+	case GDK_KEY_S:
 		if (state == GDK_CONTROL_MASK) // Ctrl-S toggle sidebar
 			on_sidebar_showhide_activate((GtkMenuItem *)NULL, (gpointer)NULL);
 		else if (state == GDK_MOD1_MASK) // Alt-S strong's
@@ -804,21 +800,21 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 			on_biblesync_kbd(2); // BSP speaker
 		break;
 
-	case XK_t:
-	case XK_T:
+	case GDK_KEY_t:
+	case GDK_KEY_T:
 		if (state == GDK_CONTROL_MASK) // Ctrl-T open a new tab
 			on_notebook_main_new_tab_clicked(NULL, NULL);
 		else if (state == GDK_MOD1_MASK) // Alt-T transliteration
 			kbd_toggle_option(true, "Transliteration");
 		break;
 
-	case XK_x:
-	case XK_X:
+	case GDK_KEY_x:
+	case GDK_KEY_X:
 		if (state == GDK_MOD1_MASK) // Alt-X xref toggle
 			kbd_toggle_option((main_check_for_global_option(sM, "ThMLScripref") ||
 					   main_check_for_global_option(sM, "OSISScripref")),
 					  "Cross-references");
-	case XK_Tab:
+	case GDK_KEY_Tab:
 		if (state == GDK_CONTROL_MASK) // Ctrl-Tab  next tab
 			if (GTK_NOTEBOOK(widgets.notebook_main) != NULL) {
 				gtk_notebook_next_page(GTK_NOTEBOOK(widgets.notebook_main));
@@ -826,7 +822,7 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 			}
 		break;
 
-	case XK_ISO_Left_Tab:
+	case GDK_KEY_ISO_Left_Tab:
 		if (state == (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) // Ctrl-Shift-Tab  previous tab
 			if (GTK_NOTEBOOK(widgets.notebook_main) != NULL) {
 				gtk_notebook_prev_page(GTK_NOTEBOOK(widgets.notebook_main));
@@ -834,7 +830,7 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 			}
 		break;
 
-	case XK_Page_Up:
+	case GDK_KEY_Page_Up:
 		if (state == (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) { // Ctrl-Shift-PgUp  reorder tab to left
 			gint current_tab_idx = gtk_notebook_get_current_page(GTK_NOTEBOOK(widgets.notebook_main));
 			GtkWidget *current_tab = gtk_notebook_get_nth_page(GTK_NOTEBOOK(widgets.notebook_main), current_tab_idx);
@@ -844,7 +840,7 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_Page_Down:
+	case GDK_KEY_Page_Down:
 		if (state == (GDK_CONTROL_MASK | GDK_SHIFT_MASK)) { // Ctrl-Shift-PgDown  reorder tab to right
 			gint current_tab_idx = gtk_notebook_get_current_page(GTK_NOTEBOOK(widgets.notebook_main));
 			gint n_tabs = gtk_notebook_get_n_pages(GTK_NOTEBOOK(widgets.notebook_main));
@@ -855,7 +851,7 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_w:
+	case GDK_KEY_w:
 		if (state == GDK_CONTROL_MASK) { // Ctrl-W  close current tab
 			if (GTK_NOTEBOOK(widgets.notebook_main) != NULL) {
 				gint pagenum = gtk_notebook_get_current_page(GTK_NOTEBOOK(widgets.notebook_main));
@@ -864,23 +860,23 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		}
 		break;
 
-	case XK_z:
-	case XK_Z:
+	case GDK_KEY_z:
+	case GDK_KEY_Z:
 		if (state == GDK_MOD1_MASK) // Alt-Z  open personal commentary
 			access_to_edit_percomm();
 		break;
 
-	case XK_plus: // Ctrl-Plus  Increase base font size
+	case GDK_KEY_plus: // Ctrl-Plus  Increase base font size
 		if (state == (GDK_CONTROL_MASK | GDK_SHIFT_MASK))
 			new_base_font_size(TRUE);
 		break;
 
-	case XK_minus: // Ctrl-Minus  Decrease base font size
+	case GDK_KEY_minus: // Ctrl-Minus  Decrease base font size
 		if (state == GDK_CONTROL_MASK)
 			new_base_font_size(FALSE);
 		break;
 
-	case XK_0: // Ctrl-0 (zero)  Neutralize base font size.
+	case GDK_KEY_0: // Ctrl-0 (zero)  Neutralize base font size.
 		if (state == GDK_CONTROL_MASK) {
 			settings.base_font_size = 1;
 			new_base_font_size(FALSE);
@@ -888,29 +884,29 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 		break;
 
 	// ctrl-DIGIT [1-9] selects DIGIT-th tab.
-	case XK_1:
-	case XK_2:
-	case XK_3:
-	case XK_4:
-	case XK_5:
-	case XK_6:
-	case XK_7:
-	case XK_8:
-	case XK_9:
+	case GDK_KEY_1:
+	case GDK_KEY_2:
+	case GDK_KEY_3:
+	case GDK_KEY_4:
+	case GDK_KEY_5:
+	case GDK_KEY_6:
+	case GDK_KEY_7:
+	case GDK_KEY_8:
+	case GDK_KEY_9:
 		if (state == GDK_CONTROL_MASK)
-			gui_select_nth_tab((event->keyval - XK_0) - 1); /* 0-based list */
+			gui_select_nth_tab((event->keyval - GDK_KEY_0) - 1); /* 0-based list */
 
-	case XK_F1: // F1 help
+	case GDK_KEY_F1: // F1 help
 		if (state == 0)
 			on_help_contents_activate(NULL, NULL);
 		break;
 
-	case XK_F2: // F2 preferences
+	case GDK_KEY_F2: // F2 preferences
 		if (state == 0)
 			on_preferences_activate(NULL, NULL);
 		break;
 
-	case XK_F3: // F3 search
+	case GDK_KEY_F3: // F3 search
 		if (state == 0)
 			main_open_search_dialog();
 		else if (state == GDK_CONTROL_MASK)
@@ -918,7 +914,7 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 						      2);
 		break;
 
-	case XK_F4: // F4 module manager
+	case GDK_KEY_F4: // F4 module manager
 		if (state == 0)
 			on_module_manager_activate(NULL, NULL);
 		else if (state == GDK_CONTROL_MASK)
@@ -927,13 +923,13 @@ static gboolean on_vbox1_key_press_event(GtkWidget *widget, GdkEventKey *event,
 								     cur_passage_tab)->page_widget));
 		break;
 
-	case XK_F10: // Shift-F10 bible module right click
+	case GDK_KEY_F10: // Shift-F10 bible module right click
 		if (state == GDK_SHIFT_MASK)
 			gui_menu_popup(NULL, sM, NULL);
 		/* FIXME: needs the html widget as first pram */
 		break;
 
-	case XK_F11: // F11 open current bible in separate window, maximized.
+	case GDK_KEY_F11: // F11 open current bible in separate window, maximized.
 		if (state == 0)
 			main_dialogs_open(sM, NULL, TRUE);
 		break;
@@ -948,8 +944,8 @@ static gboolean on_vbox1_key_release_event(GtkWidget *widget,
 					   gpointer user_data)
 {
 	switch (event->keyval) {
-	case XK_Shift_L:
-	case XK_Shift_R:
+	case GDK_KEY_Shift_L:
+	case GDK_KEY_Shift_R:
 		shift_key_pressed = FALSE;
 		break;
 	}

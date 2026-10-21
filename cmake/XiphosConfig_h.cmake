@@ -62,7 +62,11 @@ endif()
 
 # i18n
 include (CheckIncludeFiles)
+include(CMakePushCheckState)
+cmake_push_check_state()
+list(APPEND CMAKE_REQUIRED_INCLUDES ${Intl_INCLUDE_DIRS})
 check_include_files ("locale.h;libintl.h" ENABLE_NLS)
+cmake_pop_check_state()
 
 # strcasestr
 include (CheckFunctionExists)

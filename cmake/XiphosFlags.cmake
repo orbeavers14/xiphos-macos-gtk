@@ -52,7 +52,7 @@ add_compile_options(
   )
 
 # set 'strip' option
-if (STRIP)
+if (STRIP AND NOT APPLE)
   link_libraries( -s)
 endif()
 
@@ -62,12 +62,12 @@ add_compile_options(-fno-delete-null-pointer-checks)
 
 
 # incompatible Windows© options
-if (NOT WIN32)
+if (NOT WIN32 AND NOT APPLE)
   # tells the linker to add all symbols, not only used ones
   link_libraries( -rdynamic)
   # linker option to stop very recent dbus linkage nightmare.
   link_libraries( -Wl,-z,muldefs)
-endif(NOT WIN32)
+endif()
 
 
 # set 'delint' options
