@@ -1,8 +1,7 @@
 # Apple Silicon macOS build with MacPorts
 
 The existing GTK3 application builds and installs on arm64 macOS. This keeps the
-SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. It is separate from
-SwordReader. A standalone `.app`, signing and notarization are not implemented.
+SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. A standalone `.app`, signing and notarization are not implemented.
 
 ## Install dependencies
 
