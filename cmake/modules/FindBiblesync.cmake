@@ -72,6 +72,9 @@ find_package_handle_standard_args(Biblesync
 # If found, add target
 if(BIBLESYNC_FOUND AND NOT TARGET Biblesync::Biblesync)
   add_library(PkgConfig::Biblesync INTERFACE IMPORTED)
-  target_include_directories(PkgConfig::Biblesync INTERFACE ${BIBLESYNC_INCLUDE_DIR})
+  # Xiphos uses both <biblesync.hh> and <biblesync/biblesync.hh>.
+  get_filename_component(BIBLESYNC_INCLUDE_ROOT "${BIBLESYNC_INCLUDE_DIR}" DIRECTORY)
+  target_include_directories(PkgConfig::Biblesync INTERFACE
+    ${BIBLESYNC_INCLUDE_DIR} ${BIBLESYNC_INCLUDE_ROOT})
   target_link_libraries(PkgConfig::Biblesync INTERFACE ${BIBLESYNC_LIBRARY_DIR})
 endif()

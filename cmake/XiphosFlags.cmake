@@ -20,6 +20,16 @@
 
 message (STATUS "Setting up flags")
 
+# Current ICU headers used by the macOS dependency stack require C++17.
+if(APPLE)
+  if(NOT DEFINED CMAKE_CXX_STANDARD OR CMAKE_CXX_STANDARD LESS 17)
+    set(CMAKE_CXX_STANDARD 17)
+  endif()
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  # Keep external prefix libraries (such as BibleSync) loadable after install.
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
+
 # include config.h
 add_definitions(-DHAVE_CONFIG_H)
 include_directories(${CMAKE_BINARY_DIR})

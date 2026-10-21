@@ -1,84 +1,116 @@
-# Experimental Apple Silicon macOS build of the GTK application
+# Apple Silicon macOS build with MacPorts
 
-This path keeps the upstream GTK3 application, SWORD engine, WebKitGTK renderer,
-BibleSync, translations and D-Bus code. It is independent of any native UI or
-SwordReader rewrite. It is a developer build path, not a finished macOS port.
+The existing GTK3 application builds and installs on arm64 macOS. This keeps the
+SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. It is separate from
+SwordReader. A standalone `.app`, signing and notarization are not implemented.
 
-## Dependencies
+## Install dependencies
 
-Use one arm64 dependency prefix with matching GTK and WebKitGTK backends.
-CMake, Apple Clang, pkg-config, GLib tools, GTK3, WebKitGTK 4.1 (or 4.0),
-libsoup matching WebKitGTK, ICU, SWORD >= 1.8.1, BibleSync >= 1.2.0, minizip,
-zlib, libxml2, gettext/libintl and pthreads are needed. The macOS SDK supplies
-UUID through libSystem. AVFoundation/Foundation supply read-aloud.
+Install the official [MacPorts package](https://www.macports.org/install.php)
+for your macOS version and Apple developer tools. MacPorts 2.12.7 with Xcode 27
+was used for the recorded build on macOS 27.0.1. Administrator authorization is
+needed for MacPorts installation and package management.
 
-Homebrew's `webkitgtk` formula explicitly requires Linux, so installing the
-remaining Homebrew dependencies does not give a complete build environment.
-MacPorts' `webkit2-gtk` port has Darwin patches and `+quartz` / `+x11` variants.
-Its GTK3 dependency must use the same variant. This is a prospective route;
-a full MacPorts installation/build has not been validated here. Do not mix
-Homebrew GTK with MacPorts WebKitGTK, or x86_64 libraries with arm64 libraries.
-Apple's WebKit.framework does not implement the WebKitGTK C API.
+If rsync synchronization fails, use the official signed HTTPS snapshot in
+`/opt/local/etc/macports/sources.conf`, keeping a backup of that file:
 
-SWORD discovery on macOS uses its headers and library, because Homebrew's
-SWORD 1.9.0 package does not ship `sword.pc`. Pass the intended prefix first
-in `CMAKE_PREFIX_PATH`; explicit `Sword_INCLUDE_DIR` / `Sword_LIBRARY` overrides
-are available. Prefer a shared SWORD library; static builds may need additional
-compression/network dependencies. Avoid stale `/usr/local` package metadata.
-
-## BibleSync
-
-The wrapper builds an unmodified external checkout, supplies Darwin's UUID
-library and links gettext explicitly. It downloads nothing and patches no
-external source. Example commands, run from the Xiphos source root:
-
-```sh
-git clone https://github.com/karlkleinpaste/biblesync.git ../biblesync
-# Revision used in the local build:
-git -C ../biblesync checkout e1d35362351e4eef9da71fe49caf709efd05c179
-cmake -S cmake/macos/BibleSync -B build/biblesync \
-  -DBIBLESYNC_SOURCE_DIR="$PWD/../biblesync" \
-  -DCMAKE_PREFIX_PATH=/opt/local \
-  -DCMAKE_INSTALL_PREFIX="$PWD/build/prefix"
-cmake --build build/biblesync
-cmake --install build/biblesync
+```text
+https://distfiles.macports.org/ports.tar.gz [default]
 ```
 
-Replace `/opt/local` with the coherent prefix you actually use. For the tested
-Homebrew subset, the gettext prefix was `/opt/homebrew/opt/gettext`.
-The wrapper requires CMake >= 3.18.
+Then run:
 
-## Configure and build
+```sh
+sudo port sync
+sudo port install webkit2-gtk sword minizip pkgconfig gettext xorg-server +x11
+```
 
-Once the complete dependency stack is available, from the source root:
+The tested GTK/WebKit combination is **X11**, with GTK3 3.24.52 and WebKitGTK
+2.52.4. Do not mix Homebrew GTK, MacPorts WebKit, or different architectures.
+The Quartz variant has not been tested. Homebrew's WebKitGTK formula requires
+Linux; Apple's WebKit.framework cannot replace the WebKitGTK C API.
+
+### SWORD 1.9.0 and ICU 78 build correction
+
+On the tested ports snapshot, SWORD's binary archive was unavailable, and its
+source recipe forced C++11 even though ICU 78 headers need C++17. If the same
+failure occurs, back up the recipe, then apply
+[`sword-icu78.patch`](../cmake/macos/sword-icu78.patch) to your ports tree.
+Locate the recipe with `port file sword`. In that file change:
+
+```text
+compiler.cxx_standard     2011  ->  compiler.cxx_standard     2017
+-std=c++11                    ->  -std=c++17
+```
+
+Then run `sudo port clean sword` and repeat the install. This changes the
+local dependency recipe only; a later ports-tree refresh may replace it.
+Do not apply it if the current recipe already fixes the standard. The actual
+SWORD source build succeeded after this correction.
+
+## Build BibleSync and Xiphos
+
+From this repository's source root:
 
 ```sh
 export PATH="/opt/local/bin:$PATH"
 export PKG_CONFIG_LIBDIR="/opt/local/lib/pkgconfig:/opt/local/share/pkgconfig"
-cmake -S . -B build/macos \
+unset PKG_CONFIG_PATH
+
+git clone https://github.com/karlkleinpaste/biblesync.git ../biblesync
+git -C ../biblesync checkout e1d35362351e4eef9da71fe49caf709efd05c179
+
+cmake -S cmake/macos/BibleSync -B build/biblesync \
+  -DBIBLESYNC_SOURCE_DIR="$PWD/../biblesync" \
+  -DCMAKE_PREFIX_PATH=/opt/local \
   -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DCMAKE_INSTALL_PREFIX="$PWD/build/prefix"
+cmake --build build/biblesync --parallel 2
+cmake --install build/biblesync
+
+cmake -S . -B build/macos \
   -DCMAKE_PREFIX_PATH="$PWD/build/prefix;/opt/local" \
+  -DCMAKE_OSX_ARCHITECTURES=arm64 \
   -DCMAKE_INSTALL_PREFIX="$PWD/build/install" \
   -DGTKTVEDITOR=ON -DHELP=OFF -DEPUB=OFF -DI18N=OFF
-cmake --build build/macos --parallel
+cmake --build build/macos --parallel 2
 cmake --install build/macos
+```
+
+Use an installed CMake >= 3.18; the tested CMake executable came from Homebrew,
+while all application libraries came from MacPorts or the local BibleSync prefix.
+The macOS app build requires C++17 for the current ICU stack. The wrapper builds
+unmodified BibleSync source and supplies libSystem UUID and explicit libintl
+linkage. Both flat and qualified BibleSync includes are supported. The installed
+executable retains external-prefix runtime search paths; keep the dependency
+prefix in place. This is not a relocatable distribution.
+
+`GTKTVEDITOR=ON` selects the existing upstream GtkTextView notes editor. Upstream's
+default WebKit2 editor is already a disabled stub; rich-text editor parity is not
+claimed. HELP/EPUB/I18N build options were disabled for the initial build; complete
+help and localization validation remains. Existing defaults and source are retained.
+
+## Launch
+
+For a normal graphical session, MacPorts' xinit instructions require logging out
+and back in after installing X11. Start `/Applications/MacPorts/X11.app` and
+ensure a working `DISPLAY`. D-Bus must also have a working session; see
+`port notes dbus`. Then launch:
+
+```sh
 ./build/install/bin/xiphos
 ```
 
-These commands remain unverified beyond dependency discovery on this machine.
-`GTKTVEDITOR=ON` selects the existing upstream GtkTextView notes/journal editor.
-Upstream's default WebKit2 editor is a disabled stub; this patch does not change
-that default or claim GtkTextView has complete rich-text editor parity.
-`I18N=OFF` and `HELP=OFF` reduce build-time documentation/translation tools for
-the initial attempt. They do not remove the source. Enable I18N and HELP once
-itstool and the requested help generators are installed, then validate them.
-D-Bus stays enabled by default and requires a working session bus at runtime.
-TGZ packaging is a prefix archive, not a relocatable `.app` or installer.
+The recorded validation used `Xvfb :99`, software compositing, a private D-Bus
+session, an isolated child-process profile and an original-prose SWORD module.
+It did not require a logout or alter existing user modules. The default MacPorts
+D-Bus configuration uses launchd and fails before a new login environment exists.
+For an isolated test session, copy `/opt/local/share/dbus-1/session.conf` and replace
+its launchd `<listen>` entry with `<listen>unix:tmpdir=/private/tmp</listen>`, then
+use `dbus-run-session --config-file=PATH_TO_COPY -- PROGRAM`. Authentication and
+policy entries remain unchanged; no global D-Bus configuration change is needed.
 
-## Independently runnable compatibility checks
-
-These checks compile and link real dependencies and the actual speech adapter;
-they do not need WebKitGTK or open the GTK UI:
+## Compatibility tests
 
 ```sh
 cmake -S cmake/macos/smoke -B build/macos-smoke \
@@ -87,42 +119,6 @@ cmake --build build/macos-smoke
 ctest --test-dir build/macos-smoke --output-on-failure
 ```
 
-The dependency test exercises UUID generation, gettext lookup, SWORD string
-handling and BibleSync construction in disabled mode (no multicast). The speech
-test covers null/invalid input and safe shutdown only; it does not play audio.
-Neither is a UI, scripture-rendering, module-installation or feature-parity test.
-
-## Local results: 2026-10-20
-
-Environment: arm64 macOS 27.0.1 (26A434), Apple Clang 21.0.0,
-CMake 4.4.0. Upstream base: `52302cb051d17e2bbe6846be52a942fb2490f75a`.
-
-* Pristine upstream configure first failed on missing GLib tools, then on
-  `desktop-file-validate` after the available dependencies were installed.
-* Pristine BibleSync configure failed: `Could not find UUID`.
-* Wrapped BibleSync 2.2.0: configured, compiled, linked and installed as arm64.
-  Upstream emits an assignment-in-condition warning and duplicate `-lSystem`
-  warning; neither prevents the build.
-* Patched Xiphos discovers real GTK3 3.24.52, SWORD 1.9.0, BibleSync 2.2.0,
-  GLib 2.90.1, ICU 78.3, libsoup 3.8.0 and the other non-renderer dependencies.
-  Both default-editor and GtkTextView configurations fail because neither
-  `webkit2gtk-4.1` nor `webkit2gtk-4.0` is installed.
-* A build invocation after failed configuration cannot run: no Makefile exists.
-  No Xiphos executable, app bundle or distributable installer was produced.
-* Both independent tests pass on arm64. An additional compiled comparison
-  confirms all 61 shortcut key values changed to GDK match the original X11
-  values. No Linux/Windows regression build was run.
-
-Next: provision a coherent arm64 MacPorts GTK3/WebKitGTK stack, reconfigure,
-compile all app sources and fix any further compiler errors. Then launch the
-GTK UI and exercise rendering/navigation, search, notes/save, module management,
-BibleSync multicast, D-Bus, image opening, read-aloud/cancel, translations and
-help. No feature-parity conclusion is justified before those checks. Application
-bundling, resource relocation, dylib bundling, signing and notarization remain.
-
-Sources inspected:
-
-* https://github.com/crosswire/xiphos/issues/760
-* https://github.com/Homebrew/homebrew-core/blob/main/Formula/w/webkitgtk.rb
-* https://github.com/macports/macports-ports/blob/master/www/webkit2-gtk/Portfile
-* https://github.com/karlkleinpaste/biblesync
+Both tests passed against MacPorts. They exercise real UUID, gettext, SWORD and
+BibleSync dependencies, and invalid-input handling in the AVFoundation speech
+adapter. They do not establish full application parity. See [validation](macos-validation.md).

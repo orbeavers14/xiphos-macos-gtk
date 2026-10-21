@@ -1,1 +1,3 @@
 win32/extras/* linguist-vendored
+
+cmake/macos/*.patch -whitespace
