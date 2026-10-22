@@ -24,3 +24,25 @@ target_include_directories(speech PRIVATE "${XIPHOS_SOURCE_DIR}/src/gtk")
 set_source_files_properties("${XIPHOS_SOURCE_DIR}/src/gtk/macos_tts.m" PROPERTIES COMPILE_OPTIONS "-fno-objc-arc")
 target_link_libraries(speech PRIVATE ${AVFOUNDATION_FRAMEWORK} ${FOUNDATION_FRAMEWORK})
 add_test(NAME speech-invalid-input COMMAND speech)
+
+find_program(IMP2VS NAMES imp2vs REQUIRED)
+add_executable(sword_workflows sword_workflows.cc)
+target_link_libraries(sword_workflows PRIVATE PkgConfig::Sword)
+add_test(NAME sword-workflows COMMAND ${CMAKE_COMMAND}
+  -DIMP2VS=${IMP2VS}
+  -DFIXTURE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/fixtures
+  -DWORKFLOW_EXECUTABLE=$<TARGET_FILE:sword_workflows>
+  -DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/workflow-test
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/run-workflows.cmake)
+
+set(XIPHOS_TEST_APP "" CACHE FILEPATH "Optional full Xiphos executable for D-Bus integration test")
+set(XIPHOS_TEST_DISPLAY ":99" CACHE STRING "Already-running isolated X display for integration test")
+if(XIPHOS_TEST_APP)
+  find_package(Python3 COMPONENTS Interpreter REQUIRED)
+  add_test(NAME xiphos-dbus-navigation COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/navigation.py
+    --app ${XIPHOS_TEST_APP}
+    --profile ${CMAKE_CURRENT_BINARY_DIR}/navigation-profile
+    --display ${XIPHOS_TEST_DISPLAY})
+  set_tests_properties(xiphos-dbus-navigation PROPERTIES TIMEOUT 120)
+endif()

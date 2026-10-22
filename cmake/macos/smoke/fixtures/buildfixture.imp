@@ -1,0 +1,6 @@
+$$$Gen.1.1
+This original prose fixture checks that Xiphos can render a verse on Apple Silicon.
+$$$Gen.1.2
+A second original test entry checks navigation between nearby verse references.
+$$$John.1.1
+A separate original test entry provides another book for the build smoke test.

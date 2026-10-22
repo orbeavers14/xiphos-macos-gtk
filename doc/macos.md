@@ -118,6 +118,29 @@ cmake --build build/macos-smoke
 ctest --test-dir build/macos-smoke --output-on-failure
 ```
 
-Both tests passed against MacPorts. They exercise real UUID, gettext, SWORD and
-BibleSync dependencies, and invalid-input handling in the AVFoundation speech
-adapter. They do not establish full application parity. See [validation](macos-validation.md).
+The three default tests exercise real UUID/gettext/SWORD/BibleSync dependencies,
+AVFoundation invalid-input handling, SWORD verse lookup and phrase search, and
+UTF-8 RawFiles note persistence. They require `imp2vs` from the SWORD package.
+The storage check does not operate the GTK editor.
+
+For the optional full-app navigation regression, choose an unused virtual display
+(the following uses `:99`) and keep it running while CTest executes:
+
+```sh
+Xvfb :99 -screen 0 1280x800x24 -nolisten tcp &
+xiphos_test_display_pid=$!
+cmake -S cmake/macos/smoke -B build/macos-smoke \
+  -DCMAKE_PREFIX_PATH="$PWD/build/prefix;/opt/local" \
+  -DXIPHOS_TEST_APP="$PWD/build/install/bin/xiphos" \
+  -DXIPHOS_TEST_DISPLAY=:99
+cmake --build build/macos-smoke
+ctest --test-dir build/macos-smoke --output-on-failure
+kill "$xiphos_test_display_pid"
+```
+
+Four tests passed with the optional integration test enabled. Python 3, `gdbus`,
+`dbus-daemon`, and MacPorts' session configuration are required for that test.
+It runs the app with `G_DEBUG=fatal-criticals` using a disposable profile and
+private D-Bus bus, then checks navigation to Genesis 1:2, John 1:1 and Genesis 1:1.
+It does not interact with the user's running app. These tests do not establish
+full application parity. See [validation](macos-validation.md).
