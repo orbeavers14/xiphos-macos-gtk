@@ -104,3 +104,12 @@ Xiphos' notes editor or assert rich-text parity.
 See the [test commands](macos.md#compatibility-tests). The regression build was
 installed separately from the user's running desktop binary; that session was
 left untouched. Rebuild/restart the desktop app to pick up the source fix.
+
+## Ad-hoc signing validation (2026-10-21)
+
+The signing tool was run on a disposable app containing the actual arm64 Xiphos
+executable and WebKitWebProcess helper. Strict recursive signature verification
+passed. Modifying a sealed resource caused verification to fail as expected;
+restoring it and signing again passed. This checks signing and resource sealing,
+not launch, Gatekeeper acceptance, or standalone dependency completeness. No
+public application archive was produced by this signing-only check.

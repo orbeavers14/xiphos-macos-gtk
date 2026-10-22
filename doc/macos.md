@@ -1,7 +1,7 @@
 # Apple Silicon macOS build with MacPorts
 
 The existing GTK3 application builds and installs on arm64 macOS. This keeps the
-SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. A standalone `.app`, signing and notarization are not implemented.
+SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. A standalone `.app` is still in progress. Ad-hoc signing tooling is available; notarization is not implemented.
 
 ## Install dependencies
 
@@ -144,3 +144,21 @@ It runs the app with `G_DEBUG=fatal-criticals` using a disposable profile and
 private D-Bus bus, then checks navigation to Genesis 1:2, John 1:1 and Genesis 1:1.
 It does not interact with the user's running app. These tests do not establish
 full application parity. See [validation](macos-validation.md).
+
+## Ad-hoc signing a staged application
+
+After assembling a complete `.app` and finishing all dependency relocation, run:
+
+```sh
+python3 cmake/macos/adhoc-sign.py /path/to/Xiphos.app
+```
+
+This signs Mach-O executables and libraries, nested code bundles, and finally the
+outer app, then verifies with `codesign --verify --deep --strict`. It refuses
+symlinks that escape the bundle. Sign again after any package changes. No Apple
+account or certificate is required. Hardened runtime is not enabled.
+
+Ad-hoc signing does not establish a trusted publisher, notarize the app, or remove
+Gatekeeper's downloaded-app checks. It also does not bundle dependencies. The
+current build still has external MacPorts library and resource paths, including
+WebKit helpers and X11. It is not yet a standalone public download.
