@@ -1,0 +1,41 @@
+diff --git a/hw/xquartz/bundle/meson.build b/hw/xquartz/bundle/meson.build
+index 2294120..8a9d22b 100644
+--- a/hw/xquartz/bundle/meson.build
++++ b/hw/xquartz/bundle/meson.build
+@@ -56,4 +56,4 @@ install_data('X11.sh',
+     install_dir: join_paths(bundle_root, 'Contents/MacOS'),
+     install_mode: 'rwxr-xr-x')
+ 
+-meson.add_install_script('chown-bundle.sh', bundle_root)
++# Bundle ownership is managed by the unprivileged packager.
+diff --git a/hw/xquartz/mach-startup/bundle-main.c b/hw/xquartz/mach-startup/bundle-main.c
+index de82e22..d5f887c 100644
+--- a/hw/xquartz/mach-startup/bundle-main.c
++++ b/hw/xquartz/mach-startup/bundle-main.c
+@@ -551,7 +551,8 @@ setup_env(void)
+         pds = BUNDLE_ID_PREFIX ".X11";
+     }
+ 
+-    setup_console_redirect(pds);
++    if (!getenv("XIPHOS_BUNDLE_ROOT"))
++        setup_console_redirect(pds);
+ 
+     server_bootstrap_name = strdup(pds);
+     if (!server_bootstrap_name) {
+@@ -648,6 +649,16 @@ main(int argc, char **argv, char **envp)
+     strlcpy(__crashreporter_info_buff__, __crashreporter_info__base,
+             sizeof(__crashreporter_info_buff__));
+ 
++    /* Private embedded-server entry point; normal XQuartz startup is unchanged. */
++    const char *bundle_root = getenv("XIPHOS_BUNDLE_ROOT");
++    if (bundle_root) {
++        if (chdir(bundle_root) != 0) {
++            perror("XIPHOS_BUNDLE_ROOT");
++            return EXIT_FAILURE;
++        }
++        return server_main(argc, argv, envp);
++    }
++
+     ErrorF("X11.app: main(): argc=%d\n", argc);
+     for (i = 0; i < argc; i++) {
+         ErrorF("\targv[%u] = %s\n", (unsigned)i, argv[i]);

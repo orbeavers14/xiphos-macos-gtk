@@ -6,6 +6,7 @@ Run after all copying and install_name_tool changes have finished.
 """
 import argparse
 from pathlib import Path
+import plistlib
 import subprocess
 
 MACHO = {
@@ -38,14 +39,25 @@ def main():
         if path.is_symlink() or not path.is_file():
             continue
         with path.open("rb") as source:
-            if source.read(4) in MACHO:
+            if source.read(4) in MACHO and "Mach-O" in subprocess.check_output(
+                    ["/usr/bin/file", "-b", str(path)], text=True):
                 binaries.append(path)
     if not binaries:
         parser.error("no Mach-O code found")
-    for path in sorted(binaries):
-        run("/usr/bin/codesign", "--force", "--sign", "-", "--timestamp=none", str(path))
     bundles = [path for path in paths if path.is_dir() and not path.is_symlink()
                and path.suffix in {".app", ".framework", ".xpc", ".appex"}]
+    bundle_executables = set()
+    for bundle in bundles + [app]:
+        info = bundle / "Contents/Info.plist"
+        if info.is_file():
+            metadata = plistlib.loads(info.read_bytes())
+            name = metadata.get("CFBundleExecutable")
+            if name:
+                bundle_executables.add(bundle / "Contents/MacOS" / name)
+    # Signing a bundle's designated executable implicitly signs that bundle.
+    # Defer it until its helpers have signatures.
+    for path in sorted(set(binaries) - bundle_executables):
+        run("/usr/bin/codesign", "--force", "--sign", "-", "--timestamp=none", str(path))
     for path in sorted(bundles, key=lambda value: len(value.parts), reverse=True):
         run("/usr/bin/codesign", "--force", "--sign", "-", "--timestamp=none", str(path))
     run("/usr/bin/codesign", "--force", "--sign", "-", "--timestamp=none", str(app))

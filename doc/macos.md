@@ -1,7 +1,7 @@
 # Apple Silicon macOS build with MacPorts
 
 The existing GTK3 application builds and installs on arm64 macOS. This keeps the
-SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. A standalone `.app` is still in progress. Ad-hoc signing tooling is available; notarization is not implemented.
+SWORD engine, WebKitGTK renderer, BibleSync and D-Bus support. An experimental standalone `.app` now has [packaging instructions and validation results](macos-packaging.md). Ad-hoc signing is available; notarization is not implemented.
 
 ## Install dependencies
 
@@ -160,5 +160,7 @@ account or certificate is required. Hardened runtime is not enabled.
 
 Ad-hoc signing does not establish a trusted publisher, notarize the app, or remove
 Gatekeeper's downloaded-app checks. It also does not bundle dependencies. The
-current build still has external MacPorts library and resource paths, including
-WebKit helpers and X11. It is not yet a standalone public download.
+prefix build still uses external MacPorts library and resource paths. Use the
+[standalone packaging workflow](macos-packaging.md) to bundle and relocate these,
+including WebKit helpers and X11. The standalone preview needs broader validation
+before a public release.

@@ -33,6 +33,22 @@
 // Define locale dir
 #cmakedefine PACKAGE_LOCALE_DIR "@PACKAGE_LOCALE_DIR@"
 
+#ifdef __APPLE__
+#ifdef __cplusplus
+extern "C" {
+#endif
+const char *xiphos_macos_resource_dir(int locale, const char *fallback);
+#ifdef __cplusplus
+}
+#endif
+#undef PACKAGE_PIXMAPS_DIR
+#undef SHARE_DIR
+#undef PACKAGE_LOCALE_DIR
+#define PACKAGE_PIXMAPS_DIR xiphos_macos_resource_dir(0, "@PACKAGE_PIXMAPS_DIR@")
+#define SHARE_DIR xiphos_macos_resource_dir(0, "@SHARE_DIR@")
+#define PACKAGE_LOCALE_DIR xiphos_macos_resource_dir(1, "@PACKAGE_LOCALE_DIR@")
+#endif
+
 // Use Webkit Editor
 #cmakedefine USE_WEBKIT_EDITOR 1
 

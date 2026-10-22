@@ -79,8 +79,11 @@ are excluded from this repository. Evidence images show only the isolated test.
   complete localization remain unverified. Desktop automation timed out for X11,
   so no interactive editor test is claimed.
 * No Linux/Windows regression build or macOS Quartz build was run.
-* No standalone `.app`, bundled dylibs, signing or notarization. TGZ packaging is
-  only a developer prefix archive and depends on installed libraries/resources.
+* At the initial prefix-build checkpoint, no standalone `.app` was available.
+  The subsequent [standalone preview](macos-packaging.md) bundles libraries and
+  X11 and passes relocation/navigation checks with host dependencies blocked.
+  It uses ad-hoc signing and is not notarized. TGZ prefix archives still depend
+  on installed libraries/resources.
 * Inherited hosted builds are manual-only in this repository. No hosted build
   has been run or is claimed to validate macOS.
 

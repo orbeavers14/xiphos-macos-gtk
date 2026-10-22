@@ -2,10 +2,11 @@
 
 Apple Silicon compatibility work for the existing [CrossWire Xiphos](https://github.com/crosswire/xiphos) application, starting from [issue #760](https://github.com/crosswire/xiphos/issues/760).
 
-**Status:** built and installed as arm64 on macOS using MacPorts; GTK startup and WebKitGTK rendering of an original-prose SWORD fixture verified on a virtual X11 display. This is a developer build, not a signed or self-contained Mac application.
+**Status:** builds as arm64 with MacPorts. An experimental ad-hoc signed macOS 27 application now bundles the GTK/WebKit runtime and a private X11 server. Startup and verse navigation passed after moving the app, with host package-manager and build paths blocked. It is not notarized or fully validated on a clean Mac.
 
 - [Build instructions and resolved issues](doc/macos.md)
 - [Validation evidence and remaining limitations](doc/macos-validation.md)
+- [Standalone preview packaging, tests and limitations](doc/macos-packaging.md)
 
 This repository preserves upstream history, GTK3 UI, SWORD functionality and license notices. It is separate from SwordReader and any native UI rewrite. It is an independently hosted derivative, rather than a second GitHub fork-network entry under the same account. Upstream documentation follows below.
 

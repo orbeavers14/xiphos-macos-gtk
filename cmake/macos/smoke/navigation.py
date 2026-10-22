@@ -17,11 +17,11 @@ def require(condition, message):
         raise RuntimeError(message)
 
 
-def stop(process):
+def stop(process, timeout=5):
     if process is not None and process.poll() is None:
         process.terminate()
         try:
-            process.wait(timeout=5)
+            process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait(timeout=5)

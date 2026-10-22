@@ -1444,8 +1444,20 @@ G_MODULE_EXPORT void on_rename_perscomm_activate(GtkMenuItem *menuitem,
 	datapath_new = s;     // ..and in with the new.
 
 	// move old data directory to new.
+#ifdef __APPLE__
+	/* Keep the bundle's runtime working directory stable when renaming notes. */
+	gchar *absolute_old = g_path_is_absolute(datapath_old) ? g_strdup(datapath_old) :
+	    g_build_filename(sworddir, datapath_old, NULL);
+	gchar *absolute_new = g_path_is_absolute(datapath_new) ? g_strdup(datapath_new) :
+	    g_build_filename(sworddir, datapath_new, NULL);
+	gboolean rename_failed = rename(absolute_old, absolute_new) != 0;
+	g_free(absolute_old);
+	g_free(absolute_new);
+	if (rename_failed) {
+#else
 	if ((g_chdir(sworddir) != 0) ||
 	    (rename(datapath_old, datapath_new) != 0)) {
+#endif
 		gui_generic_warning_modal("Failed to rename directory.");
 		goto out2;
 	}

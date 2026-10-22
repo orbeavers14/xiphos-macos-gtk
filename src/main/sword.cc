@@ -838,7 +838,12 @@ void main_init_backend(void)
 	backend->init_SWORD(0);
 	settings.path_to_mods = main_get_path_to_mods();
 	//#ifndef DEBUG
-	g_chdir(settings.path_to_mods);
+#ifdef __APPLE__
+	/* The bundled vendor runtime uses paths relative to Resources. SWORD's
+	 * initialized module paths are absolute; retain the prefix-build behavior. */
+	if (!xiphos_macos_resource_dir(0, NULL))
+#endif
+		g_chdir(settings.path_to_mods);
 	//#else
 	//#endif
 	XI_print(("%s sword-%s\n", "Starting", backend->get_sword_version()));
