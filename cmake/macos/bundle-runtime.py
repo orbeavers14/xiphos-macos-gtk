@@ -29,6 +29,27 @@ def output(*args):
     return subprocess.check_output(args, text=True)
 
 
+def ignore_build_tool_catalogs(directory, names):
+    if Path(directory).name == 'LC_MESSAGES':
+        return {'bash.mo', 'coreutils.mo', 'm4.mo'}.intersection(names)
+    return set()
+
+
+def restore_data_aliases(origins):
+    """Restore same-directory data aliases flattened during staging."""
+    destinations = {(path.parent, source.name): path for path, source in origins.items()
+                    if path.name == source.name}
+    for path, source in origins.items():
+        target = destinations.get((path.parent, source.name))
+        if (target is None or target == path or origins[target] != source
+                or path.is_symlink() or path.read_bytes() != target.read_bytes()):
+            continue
+        if macho(path):
+            continue
+        path.unlink()
+        path.symlink_to(target.name)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--prefix', type=Path, default=Path('/opt/local'))
@@ -62,11 +83,11 @@ def main():
         shutil.copy2(source, destination)
         origins[destination] = source
 
-    def copy_tree(source, destination):
+    def copy_tree(source, destination, *, ignore=None):
         if not source.exists():
             return
         # Dereference links: no staging links can escape to the build machine.
-        shutil.copytree(source, destination, symlinks=False, dirs_exist_ok=True)
+        shutil.copytree(source, destination, symlinks=False, dirs_exist_ok=True, ignore=ignore)
         for path in destination.rglob('*'):
             if path.is_file():
                 origins[path] = (source / path.relative_to(destination)).resolve()
@@ -83,7 +104,7 @@ def main():
         unused.unlink()
         origins.pop(unused, None)
     for relative in ('share/fonts', 'share/X11', 'share/icons', 'share/mime',
-                     'share/locale', 'share/glib-2.0/schemas', 'share/iso-codes',
+                     'share/glib-2.0/schemas', 'share/iso-codes',
                      'share/fontconfig', 'share/gtk-3.0', 'share/doc', 'share/sword',
                      'share/curl', 'share/xml', 'share/defaults/at-spi2',
                      'share/dbus-1/accessibility-services',
@@ -91,6 +112,8 @@ def main():
                      'lib/gtk-3.0', 'lib/gstreamer-1.0', 'lib/webkit2gtk-4.1',
                      'lib/dri', 'lib/enchant-2'):
         copy_tree(prefix / relative, runtime / relative)
+    copy_tree(prefix / 'share/locale', runtime / 'share/locale',
+              ignore=ignore_build_tool_catalogs)
     for relative in ('bin/dbus-daemon', 'bin/dbus-run-session', 'bin/gdbus',
                      'bin/xauth', 'bin/xkbcomp', 'bin/quartz-wm',
                      'bin/gdk-pixbuf-query-loaders', 'bin/gio-querymodules',
@@ -170,6 +193,10 @@ def main():
             if changes:
                 subprocess.run(['/usr/bin/install_name_tool', *changes, str(path)],
                                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    immutable_data = (runtime / "share/locale", runtime / "share/icons")
+    restore_data_aliases({path: source for path, source in origins.items()
+                          if path.is_relative_to(immutable_data[0])
+                          or path.is_relative_to(immutable_data[1])})
     fonts = runtime / 'etc/fonts/fonts.conf'
     font_config = fonts.read_text()
     font_config = re.sub(r'<dir>(\./runtime/[^<]+)</dir>',
