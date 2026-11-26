@@ -2,11 +2,23 @@
 
 Apple Silicon compatibility work for the existing [CrossWire Xiphos](https://github.com/crosswire/xiphos) application, starting from [issue #760](https://github.com/crosswire/xiphos/issues/760).
 
-**Status:** builds as arm64 with MacPorts. An experimental ad-hoc signed macOS 27 application now bundles the GTK/WebKit runtime and a private X11 server. Startup and verse navigation passed after moving the app, with host package-manager and build paths blocked. It is not notarized or fully validated on a clean Mac.
+## Download for macOS
 
-- [Build instructions and resolved issues](doc/macos.md)
-- [Validation evidence and remaining limitations](doc/macos-validation.md)
-- [Standalone preview packaging, tests and limitations](doc/macos-packaging.md)
+[Download the Apple Silicon preview (240.9 MB)](https://github.com/orbeavers14/xiphos-macos-gtk/releases/tag/macos-gtk-audit-candidate-2026-11-26). It requires macOS 27 or later. Unzip the download and open **Xiphos GTK Preview.app**. The preview bundles GTK 3, WebKitGTK, and a private X11 server. It is ad-hoc signed and remains an experimental build.
+
+## Build from source
+
+1. Install the Apple developer tools, [MacPorts](https://www.macports.org/install.php), and CMake 3.18 or later on an Apple Silicon Mac.
+2. Clone this repository, enter the checkout, and install the runtime and build dependencies:
+
+   ```sh
+   sudo port sync
+   sudo port install webkit2-gtk sword minizip pkgconfig gettext xorg-server +x11
+   ```
+
+3. Follow the [BibleSync and Xiphos build commands](doc/macos.md#build-biblesync-and-xiphos). The install step places the executable at `build/install/bin/xiphos`. Follow the [launch steps](doc/macos.md#launch) to start it in a working X11 and D-Bus session.
+
+See the [standalone packaging guide](doc/macos-packaging.md) to build a distributable `.app`, and the [validation notes](doc/macos-validation.md) for the tested configurations.
 
 This repository preserves upstream history, GTK3 UI, SWORD functionality and license notices. It is separate from SwordReader and any native UI rewrite. It is an independently hosted derivative, rather than a second GitHub fork-network entry under the same account. Upstream documentation follows below.
 
